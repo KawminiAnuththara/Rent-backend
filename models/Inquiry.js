@@ -36,6 +36,7 @@ const inquirySchema = new mongoose.Schema({
    }
 })
 
-const Inquiry = mongoose.model("Inquiryis",inquirySchema);
+
+const Inquiry = mongoose.models.Inquiry || mongoose.model("Inquiryis",inquirySchema);
 
 export default Inquiry;
