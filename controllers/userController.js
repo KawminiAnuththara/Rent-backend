@@ -7,31 +7,34 @@ dotenv.config();
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body; // Ensure password is received
+    const { name, email, password ,firstName,lastName,phone,address,role} = req.body;
 
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
     }
 
-    // Hash password securely
-    const saltRounds = 10; // Define salt rounds
+    const saltRounds = 10;
     const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
-    // Save user (replace with your DB logic)
-    const newUser = {
+    // ✅ Actually save user in MongoDB
+    const newUser = await User.create({
       name,
       email,
-      password: hashedPassword, // Store hashed password
-    };
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone,
+      address,
+      role
+    });
 
-    // Send response
     res.status(201).json({ message: "User registered successfully!", user: newUser });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error during registration" });
   }
 };
+
 
 export { registerUser };
 
