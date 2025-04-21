@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import { isItAdmin, isItCustomer } from "./userController.js";
 
 export async function createOrder(req, res) {
     try {
@@ -153,5 +154,25 @@ export async function getQuote(req,res){
     } catch (e) {
         console.error("Order creation failed:", e);
         return res.status(500).json({ message: "Failed to create order", error: e.message });
+    }
+}
+
+export async function getOrders(req,res){
+    if(isItCustomer(req)){
+        try{
+            const orders = await Order.find({email:req.user.email});
+            res.json(orders);
+        }catch(e){
+            res.status(500).json({error:"Failed to get orders"});
+        }
+    }else if(isItAdmin(req)){
+        try{
+            const orders = await Order.find();
+            res.json(orders);
+        }catch(e){
+            res.status(500).json({error:"Failed"});
+        }
+    }else{
+        res.status(403).json({error:"Unauthorized user"});
     }
 }

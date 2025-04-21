@@ -47,6 +47,11 @@ export function loginUser(req, res) {
                 return res.status(404).json({ error: "User not found" });
             }
 
+            if(user.isBlocked){
+              res.status(403).json({error:"Your account is blocked please contact the admin"});
+              return;
+            }
+
             const isPasswordCorrect = bcrypt.compareSync(data.password, user.password);
 
             if (isPasswordCorrect) {
@@ -92,4 +97,53 @@ export function isItAdmin(req){
       }
     }
     return isCustomer;
+  }
+
+  //get all user details
+  export async function getAllUsers(req,res){
+    if(isItAdmin(req)){
+      try{
+      const users = await User.find();
+      res.json(users);
+      }catch(e){
+        res.status(500).json({error:"Failed to get user"});
+      }
+    }else{
+      res.status(403).json({error:"Unauthorized user"});
+    }
+  }
+
+  export async function blockOrUnblockUser(req,res){
+    const email = req.params.email;
+
+    if(isItAdmin(req)){
+      try{
+        const user = await User.findOne(
+          {
+            email : email
+          }
+        )
+        if(user == null){
+          res.status(404).json({error:"User not found"});
+          return;
+        }
+
+        const isBlocked = !user.isBlocked;
+
+        await User.updateOne(
+          {
+            email:email
+          },
+          {
+            isBlocked : isBlocked
+          }
+        );
+
+        res.json({message:"User blocked/unblocked successfully"});
+      }catch(e){
+        res.status(500).json({error:"Failed to get user"});
+      }
+    }else{
+      res.status(403).json({error:"Unauthorized"});
+    }
   }
