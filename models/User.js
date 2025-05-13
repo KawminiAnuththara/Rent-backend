@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true,
         default :"https://static.vecteezy.com/system/resources/previews/009/734/564/non_2x/default-avatar-profile-icon-of-social-media-user-vector.jpg"
+    },
+    emailVerified : {
+        type : Boolean,
+        required :true,
+        default :false
     }
 });
 
