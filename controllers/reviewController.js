@@ -23,6 +23,7 @@ export function addReview(req,res){
    })
 }
 export function getReview(req,res){
+    const user=req.user;  
     if(user == null || user.role != "admin"){
         Review.find({isApproved:true}).then((reviews)=>{
             res.json(reviews);
@@ -72,26 +73,37 @@ export function deleteReview(req,res){
     
 }
 
-export function approveReview(req,res){
-    const email=req.params.email;
+export async function approveReview(req, res) {
+    const email = req.params.email;
 
-    if(req.user == null){
-        res.status(401).json({message:"Please login and try again"});
-        return
+    if (!req.user) {
+        return res.status(401).json({ message: "Please login and try again" });
     }
 
-    if(req.user.role == "admmin"){
-        Review.updateOne({
-           email:email,
-        },{
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ message: "You are not authorized to perform this action" });
+    }
 
-           isApproved:true,
-        }).then(()=>{
-            res.json({message: "Review approved successfully"});
-        }).catch(()=>{
-            res.status(500).json({error:"Review aproved failed"});
+    try {
+        // Fetch the existing review
+        const review = await Review.findOne({ email });
+
+        if (!review) {
+            return res.status(404).json({ error: "Review not found" });
+        }
+
+        // Toggle the isApproved status
+        const newApprovalStatus = !review.isApproved;
+
+        // Update the document
+        await Review.updateOne({ email }, { isApproved: newApprovalStatus });
+
+        res.json({
+            message: `Review ${newApprovalStatus ? "approved" : "rejected"} successfully`
         });
-    }else{
-        res.status(403).json({message:"You are not authorized to perform this action"});
+
+    } catch (error) {
+        console.error("Error approving/rejecting review:", error);
+        res.status(500).json({ error: "Review approval/rejection failed" });
     }
 }
